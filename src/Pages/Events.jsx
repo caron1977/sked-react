@@ -18,8 +18,8 @@ function useFormFieldState(defaultValue) {
   return [state, onChange];
 }
 
-function fetchEvents(term) {
-  console.log("Ich mache mich auf die Suche ...");
+function fetchEvents(term, lecturer) {
+  console.log("Ich mache mich auf die Suche ..." + term + lecturer);
 
   // fetch("http://localhost:8080/sked-lag-impl/post-find-calendar-events", {
   return fetch(
@@ -28,7 +28,8 @@ function fetchEvents(term) {
       method: "POST",
       body: JSON.stringify({
         semestercode: 191,
-        term: term
+        term: term,
+        lecturer: lecturer
       }),
       headers: {
         Accept: "application/json",
@@ -42,14 +43,13 @@ function fetchEvents(term) {
 
 export function Events() {
   const [term, onTermChange] = useFormFieldState("");
+  const [lecturer, onLecturerChange] = useFormFieldState("");
 
   const [result, setResult] = React.useState(null);
 
-  let nicknames = [];
-
   function onSubmit(event) {
     event.preventDefault();
-    fetchEvents(term).then(function(response) {
+    fetchEvents(term, lecturer).then(function(response) {
       setResult(response);
     });
   }
@@ -59,14 +59,29 @@ export function Events() {
       <h1>Veranstaltungssuche</h1>
       <form onSubmit={onSubmit}>
         <TextField
-          id="outlined-search"
-          label="Suche"
+          id="outlined-search-1"
+          label="Veranstaltung"
           type="search"
           margin="normal"
           variant="outlined"
+          style={{ margin: 8 }}
           value={term}
           onChange={onTermChange}
         />
+        <TextField
+          id="outlined-search-2"
+          label="Dozent"
+          type="search"
+          margin="normal"
+          variant="outlined"
+          style={{ margin: 8 }}
+          value={lecturer}
+          onChange={onLecturerChange}
+          onKey
+        />
+        <button type="submit" style={{ visibility: "hidden" }}>
+          Submit
+        </button>
       </form>
       <Table>
         <TableHead>

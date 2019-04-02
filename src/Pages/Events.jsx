@@ -41,7 +41,7 @@ function fetchEvents(term) {
 }
 
 export function Events() {
-  const [term, onTermChange] = useFormFieldState("soziologie");
+  const [term, onTermChange] = useFormFieldState("");
 
   const [result, setResult] = React.useState(null);
 
@@ -60,7 +60,7 @@ export function Events() {
       <form onSubmit={onSubmit}>
         <TextField
           id="outlined-search"
-          label="Search field"
+          label="Suche"
           type="search"
           margin="normal"
           variant="outlined"

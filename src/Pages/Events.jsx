@@ -7,8 +7,10 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableRow
+  TableRow,
+  IconButton
 } from "@material-ui/core";
+import AddToQueueIcon from "@material-ui/icons/AddToQueue";
 
 function useFormFieldState(defaultValue) {
   const [state, setState] = React.useState(defaultValue);
@@ -18,8 +20,15 @@ function useFormFieldState(defaultValue) {
   return [state, onChange];
 }
 
-function fetchEvents(term) {
-  console.log("Ich mache mich auf die Suche ...");
+function fetchEvents(term, lecturer) {
+  console.log(
+    "Ich mache mich auf die Suche term: ".concat(
+      term,
+      " lecturer: ",
+      lecturer,
+      " ..."
+    )
+  );
 
   // fetch("http://localhost:8080/sked-lag-impl/post-find-calendar-events", {
   return fetch(
@@ -28,7 +37,8 @@ function fetchEvents(term) {
       method: "POST",
       body: JSON.stringify({
         semestercode: 191,
-        term: term
+        term: term,
+        lecturer: lecturer
       }),
       headers: {
         Accept: "application/json",
@@ -42,15 +52,40 @@ function fetchEvents(term) {
 
 export function Events() {
   const [term, onTermChange] = useFormFieldState("");
+  const [lecturer, onLecturerChange] = useFormFieldState("");
 
   const [result, setResult] = React.useState(null);
 
-  let nicknames = [];
-
   function onSubmit(event) {
     event.preventDefault();
-    fetchEvents(term).then(function(response) {
+    fetchEvents(term, lecturer).then(function(response) {
       setResult(response);
+    });
+  }
+
+  function addEventToSchedule(eventId) {
+    console.log(
+      "Ich füge dieses event meine Kalender hinzu. eventid: ".concat(
+        eventId,
+        " ..."
+      )
+    );
+
+    return fetch(
+      "https://dev01.fhws.de/sked-lag-impl/post-add-event-to-schedule",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          semestercode: 191,
+          eventId: eventId
+        }),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        }
+      }
+    ).then(function(response) {
+      console.log(" ... event hinzugefügt.");
     });
   }
 
@@ -59,20 +94,43 @@ export function Events() {
       <h1>Veranstaltungssuche</h1>
       <form onSubmit={onSubmit}>
         <TextField
-          id="outlined-search"
-          label="Suche"
+          id="outlined-search-1"
+          label="Veranstaltung"
           type="search"
           margin="normal"
           variant="outlined"
+          style={{ margin: 8 }}
           value={term}
           onChange={onTermChange}
         />
+        <TextField
+          id="outlined-search-2"
+          label="Dozent"
+          type="search"
+          margin="normal"
+          variant="outlined"
+          style={{ margin: 8 }}
+          value={lecturer}
+          onChange={onLecturerChange}
+          onKey
+        />
+        <button type="submit" style={{ visibility: "hidden" }}>
+          Submit
+        </button>
       </form>
       <Table>
+        <colgroup>
+          <col style={{ width: "5%" }} />
+          <col style={{ width: "60%" }} />
+          <col style={{ width: "25%" }} />
+          <col style={{ width: "10%" }} />
+        </colgroup>
         <TableHead>
           <TableRow>
+            <TableCell>Art</TableCell>
             <TableCell>Modulname</TableCell>
             <TableCell>Dozent(-en)</TableCell>
+            <TableCell />
           </TableRow>
         </TableHead>
         <TableBody>
@@ -80,6 +138,7 @@ export function Events() {
             result.calendarEvents.map(function(calendarEvent) {
               return (
                 <TableRow key={calendarEvent.id}>
+                  <TableCell>{calendarEvent.eventType}</TableCell>
                   <TableCell component="th" scope="row">
                     {calendarEvent.moduleName}
                   </TableCell>
@@ -87,6 +146,13 @@ export function Events() {
                     {calendarEvent.lecturers
                       .map(lecturer => lecturer.nickname)
                       .join(", ")}
+                  </TableCell>
+                  <TableCell>
+                    <IconButton>
+                      <AddToQueueIcon
+                        onClick={() => addEventToSchedule(calendarEvent.id)}
+                      />
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               );

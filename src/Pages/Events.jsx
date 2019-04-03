@@ -21,6 +21,7 @@ function useFormFieldState(defaultValue) {
 }
 
 function fetchEvents(term, lecturer) {
+
   console.log(
     "Ich mache mich auf die Suche term: ".concat(
       term,

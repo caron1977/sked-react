@@ -7,8 +7,10 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableRow
+  TableRow,
+  IconButton
 } from "@material-ui/core";
+import AddToQueueIcon from "@material-ui/icons/AddToQueue";
 
 function useFormFieldState(defaultValue) {
   const [state, setState] = React.useState(defaultValue);
@@ -19,7 +21,15 @@ function useFormFieldState(defaultValue) {
 }
 
 function fetchEvents(term, lecturer) {
-  console.log("Ich mache mich auf die Suche ..." + term + lecturer);
+
+  console.log(
+    "Ich mache mich auf die Suche term: ".concat(
+      term,
+      " lecturer: ",
+      lecturer,
+      " ..."
+    )
+  );
 
   // fetch("http://localhost:8080/sked-lag-impl/post-find-calendar-events", {
   return fetch(
@@ -54,6 +64,32 @@ export function Events() {
     });
   }
 
+  function addEventToSchedule(eventId) {
+    console.log(
+      "Ich füge dieses event meine Kalender hinzu. eventid: ".concat(
+        eventId,
+        " ..."
+      )
+    );
+
+    return fetch(
+      "https://dev01.fhws.de/sked-lag-impl/post-add-event-to-schedule",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          semestercode: 191,
+          eventId: eventId
+        }),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        }
+      }
+    ).then(function(response) {
+      console.log(" ... event hinzugefügt.");
+    });
+  }
+
   return (
     <Paper>
       <h1>Veranstaltungssuche</h1>
@@ -84,10 +120,18 @@ export function Events() {
         </button>
       </form>
       <Table>
+        <colgroup>
+          <col style={{ width: "5%" }} />
+          <col style={{ width: "60%" }} />
+          <col style={{ width: "25%" }} />
+          <col style={{ width: "10%" }} />
+        </colgroup>
         <TableHead>
           <TableRow>
+            <TableCell>Art</TableCell>
             <TableCell>Modulname</TableCell>
             <TableCell>Dozent(-en)</TableCell>
+            <TableCell />
           </TableRow>
         </TableHead>
         <TableBody>
@@ -95,6 +139,7 @@ export function Events() {
             result.calendarEvents.map(function(calendarEvent) {
               return (
                 <TableRow key={calendarEvent.id}>
+                  <TableCell>{calendarEvent.eventType}</TableCell>
                   <TableCell component="th" scope="row">
                     {calendarEvent.moduleName}
                   </TableCell>
@@ -102,6 +147,13 @@ export function Events() {
                     {calendarEvent.lecturers
                       .map(lecturer => lecturer.nickname)
                       .join(", ")}
+                  </TableCell>
+                  <TableCell>
+                    <IconButton>
+                      <AddToQueueIcon
+                        onClick={() => addEventToSchedule(calendarEvent.id)}
+                      />
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               );
